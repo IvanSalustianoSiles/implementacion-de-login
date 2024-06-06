@@ -4,7 +4,8 @@ import UserMDBManager from "../dao/userManager.mdb.js";
 
 const router = Router();
 const adminAuth = (req, res, next) => {
-  if (req.session.user.role == !admin)
+  if (!req.session.user) return res.redirect("/login");
+  if (req.session.user.role != "admin")
     return res
       .status(401)
       .send({ origin: config.SERVER, payload: "Usuario no autorizado." });
@@ -61,17 +62,28 @@ router.post("/register", async (req, res) => {
         .send("El correo y/o la contraseña ya están ocupados.");
     }
     req.session.user = { ...myUser };
-    await UserMDBManager.addUser(myUser);
+    let dbUser2 = await UserMDBManager.addUser(myUser);
+    req.session.user.role = dbUser2.role;
     res.redirect("/products");
   } catch {
     res.send("Session error.");
   }
 });
 router.get("/private", adminAuth, async (req, res) => {
-  try {
-    res.status(200).send("Bienvenido, admin.");
-  } catch {
-    res.status(500).send("Session error.");
+  if (!req.session.user) {
+    res.redirect("/login");
+  } else if (req.session.user.role == "admin") {
+    try {
+      res.status(200).send("Bienvenido, admin.");
+    } catch {
+      res.status(500).send("Session error.");
+    }
+  } else {
+    try {
+      res.status(401).send("Acceso no autorizado.");
+    } catch {
+      res.status(500).send("Session error.");
+    }
   }
 });
 router.get("/logout", async (req, res) => {

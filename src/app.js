@@ -13,10 +13,8 @@ import viewRoutes from "./routes/views.routes.js";
 import userRoutes from "./routes/users.routes.js";
 import cookiesRoutes from "./routes/cookies.routes.js";
 import sessionsRoutes from "./routes/sessions.routes.js";
-// import FileStore from "session-file-store";
 
 // Server init
-// const fileStorage = FileStore(session);
 const app = express();
 const httpServer = app.listen(config.PORT, async () => {
   await mongoose.connect(config.MONGO_URL); // Lo manejamos con promesas, como hacíamos con Firebase en React.
@@ -25,6 +23,7 @@ const httpServer = app.listen(config.PORT, async () => {
   );
 });
 const socketServer = initSocket(httpServer);
+
 // Settings & app middlewares:
 
 // General

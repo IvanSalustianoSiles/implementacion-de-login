@@ -18,7 +18,8 @@ class UserManager {
     return myUser;
   };
   addUser = async (user) => {
-    await this.model.create({ ...user });
+    const dbUser = await this.model.create({ ...user });
+    return dbUser;
   };
 }
 
