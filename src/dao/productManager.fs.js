@@ -112,7 +112,7 @@ class ProductManager {
     }
     return this.productsArray;
   }
-};
+}
 
 // Productos de ejemplo para agregar y probar el algoritmo.
 const [product1, product2, product3, productCambiado] = myProducts;

@@ -3,7 +3,7 @@ import { uploader } from "../uploader.js";
 import CartMDBManager from "../dao/cartManager.mdb.js";
 import ProductMDBManager from "../dao/productManager.mdb.js";
 import ProductManagerFS from "../dao/productManager.fs.js";
-
+import UserMDBManager from "../dao/userManager.mdb.js";
 let toSendObject = {};
 const router = Router();
 
@@ -12,7 +12,7 @@ router.get("/welcome", (req, res) => {
     name: "Iván",
     surname: "Siles",
   };
-  res.render("index", user);
+  UserMDBManager.isRegistered("index", user, req, res);
 });
 router.get("/products", async (req, res) => {
   let paginated = await ProductMDBManager.getAllProducts(
@@ -60,7 +60,7 @@ router.get("/products", async (req, res) => {
       toSendObject.payload[payloadKey] = "x";
     }
   });
-  res.render("home", { toSendArray: toSendArray, toSendObject: toSendObject });
+  UserMDBManager.isRegistered("home", { toSendArray: toSendArray, toSendObject: toSendObject, ...req.session.user }, req, res);
 });
 router.post("/products", async (req, res) => {
   const { add, ID } = req.body;
@@ -80,11 +80,11 @@ router.get("/carts/:cid", async (req, res) => {
     let myProducts = JSON.parse(JSON.stringify({ ...cart })).products[i]._id;
     toSendObject[i] = { ...toSendObject[i], ...myProducts };
   }
-  res.render("cart", { toSendObject: toSendObject });
+  UserMDBManager.isRegistered("cart", { toSendObject: toSendObject }, req, res);
 });
 router.get("/realtimeproducts", (req, res) => {
   toSendObject = ProductManagerFS.readFileAndSave();
-  res.render("realTimeProducts", { toSendObject: toSendObject });
+  UserMDBManager.isRegistered("realTimeProducts", { toSendObject: toSendObject }, req, res);
 });
 router.post("/realtimeproducts", uploader.single("archivo"), (req, res) => {
   const socketServer = req.app.get("socketServer");
@@ -113,6 +113,16 @@ router.post("/realtimeproducts", uploader.single("archivo"), (req, res) => {
   res.render("realTimeProducts", { toSendObject: toSendObject });
 });
 router.get("/chat", (req, res) => {
-  res.render("chat", {});
+  UserMDBManager.isRegistered("chat", {}, req, res);
 });
+router.get("/login", (req, res) => {
+  !req.session.user ? res.render("login", {}) : res.redirect("/profile");
+});
+router.get("/profile", (req, res) => {
+  UserMDBManager.isRegistered("profile", {user: req.session.user}, req, res);
+});
+router.get("/register", (req, res) => {
+  !req.session.user ? res.render("register", {user: req.session.user}) : res.send("Ya has ingresado.");
+});
+
 export default router;

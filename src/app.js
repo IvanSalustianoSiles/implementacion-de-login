@@ -20,7 +20,9 @@ import sessionsRoutes from "./routes/sessions.routes.js";
 const app = express();
 const httpServer = app.listen(config.PORT, async () => {
   await mongoose.connect(config.MONGO_URL); // Lo manejamos con promesas, como hacíamos con Firebase en React.
-  console.log(`Servidor activo en el puerto ${config.PORT}, conectado a DB '${config.SERVER}'.`);
+  console.log(
+    `Servidor activo en el puerto ${config.PORT}, conectado a DB '${config.SERVER}'.`
+  );
 });
 const socketServer = initSocket(httpServer);
 // Settings & app middlewares:
@@ -29,17 +31,19 @@ const socketServer = initSocket(httpServer);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(config.SECRET));
-app.use(session({
-  secret: config.SECRET,
-  resave: true,
-  saveUninitialized: true,
-  store: MongoStore.create({
-    mongoUrl: "mongodb+srv://silesivansalustiano:Coki2011@codercluster.n4kbrpc.mongodb.net/ecommerce",
-    mongoOptions: {useNewUrlParser: true, useUnifiedTopology: true},
-    ttl: 3600000
+app.use(
+  session({
+    secret: config.SECRET,
+    resave: true,
+    saveUninitialized: true,
+    store: MongoStore.create({
+      mongoUrl: config.MONGO_URL,
+      mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
+      ttl: 28800,
+    }),
+    // store: new fileStorage({path: "./sessions", ttl: 3600000, retries: 0})
   })
-  // store: new fileStorage({path: "./sessions", ttl: 3600000, retries: 0})
-}));
+);
 app.set("socketServer", socketServer);
 
 // Views
@@ -57,5 +61,3 @@ app.use("/api/sessions", sessionsRoutes);
 
 // Static
 app.use("/static", express.static(`${config.DIRNAME}/public`));
-
-
